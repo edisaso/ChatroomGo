@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <title>Rabbi's Lounge</title>
+    <style>
+
+      input { display: block; }
+      ul    { list-style: none; }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #000000;
+      }
+
+      #chat-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: 300px;
+      }
+
+      input[type="submit"] {
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      li {
+        margin-bottom: 5px;
+      }
+
+      /* Randomly position the emoji */
+      .emoji {
+        position: absolute;
+        font-size: 20px;
+      }
+      #title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #ffffff;
+        margin-top: 20px;
+        background-color: #800080;
+        padding: 10px 20px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="title">Rabbi's Lounge</div>
+    <div id="chat-container">
+      <ul id="messages"></ul>
+      <form id="chatbox">
+        <textarea></textarea>
+        <input type="submit" value="Send" />
+      </form>
+    </div>
+    <script>
+        const chatboxHeight = document.getElementById("chat-container").offsetTop - 50;
+        const chatboxWidth = document.getElementById("chat-container").offsetWidth - 30;
+      
+        function getRandomPosition() {
+          const maxWidth = window.innerWidth - 30;
+          const maxHeight = window.innerHeight - 30;
+          const x = Math.floor(Math.random() * (maxWidth - chatboxWidth));
+          const y = Math.floor(Math.random() * (maxHeight - chatboxHeight));
+          return { x, y };
+        }
+      
+        function createEmoji() {
+          const emoji = document.createElement("span");
+          emoji.classList.add("emoji");
+          emoji.innerHTML = "✡️";
+          const position = getRandomPosition();
+          emoji.style.left = `${position.x}px`;
+          emoji.style.top = `${position.y}px`;
+          document.body.appendChild(emoji);
+          return emoji;
+        }
+      
+        function updateEmojiPositions() {
+          const emojis = document.querySelectorAll(".emoji");
+          emojis.forEach((emoji) => {
+            const position = getRandomPosition();
+            emoji.style.left = `${position.x}px`;
+            emoji.style.top = `${position.y}px`;
+          });
+        }
+      
+        // Create multiple emojis
+        const numEmojis = 10;
+        for (let i = 0; i < numEmojis; i++) {
+          createEmoji();
+        }
+      
+        // Periodically update emoji positions
+        const updateInterval = 3000;
+        setInterval(updateEmojiPositions, updateInterval);
+      </script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script>
+
+      $(function(){
+
+        var socket = null;
+        var msgBox = $("#chatbox textarea");
+        var messages = $("#messages");
+
+        $("#chatbox").submit(function(){
+
+          if (!msgBox.val()) return false;
+          if (!socket) {
+            alert("Error: There is no socket connection.");
+            return false;
+          }
+
+          socket.send(msgBox.val());
+          msgBox.val("");
+          return false;
+
+        });
+
+        if (!window["WebSocket"]) {
+          alert("Error: Your browser does not support web sockets.")
+        } else {
+          socket = new WebSocket("ws://{{.Host}}/room");
+          socket.onclose = function() {
+            alert("Connection has been closed.");
+          }
+          socket.onmessage = function(e) {
+            messages.append($("<li>").text(e.data));
+          }
+        }
+
+      });
+
+    </script>
+  </body>
+</html>
